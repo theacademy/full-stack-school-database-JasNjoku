@@ -2,6 +2,7 @@ package mthree.com.fullstackschool.dao;
 
 import mthree.com.fullstackschool.dao.mappers.CourseMapper;
 import mthree.com.fullstackschool.model.Course;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -31,9 +32,8 @@ public class CourseDaoImpl implements CourseDao {
     @Override
     public List<Course> getAllCourses() {
         //YOUR CODE STARTS HERE
-
-
-        return null;
+        final String sql = "SELECT * FROM course;";
+        return jdbcTemplate.query(sql, new CourseMapper());
 
         //YOUR CODE ENDS HERE
     }
@@ -41,18 +41,26 @@ public class CourseDaoImpl implements CourseDao {
     @Override
     public Course findCourseById(int id) {
         //YOUR CODE STARTS HERE
-
-        return null;
-
+        final String sql = "SELECT FROM course WHERE id = ?;";
+        try {
+            return jdbcTemplate.queryForObject(sql, new CourseMapper(), id);
+        } catch (DataAccessException e) {
+            return null;
+        }
         //YOUR CODE ENDS HERE
     }
 
     @Override
     public void updateCourse(Course course) {
         //YOUR CODE STARTS HERE
+        final String sql = "UPDATE course SET cid = ?, courseCode = ?, courseDesc = ?, teacherId = ?;";
 
-
-
+        jdbcTemplate.update(sql,
+                course.getCourseId(),
+                course.getCourseName(),
+                course.getCourseDesc(),
+                course.getCourseId()
+        );
         //YOUR CODE ENDS HERE
     }
 
@@ -60,7 +68,8 @@ public class CourseDaoImpl implements CourseDao {
     public void deleteCourse(int id) {
         //YOUR CODE STARTS HERE
 
-
+        final String sql = "DELETE FROM course WHERE id = ?;";
+        jdbcTemplate.update(sql, id);
 
         //YOUR CODE ENDS HERE
     }
@@ -69,7 +78,8 @@ public class CourseDaoImpl implements CourseDao {
     public void deleteAllStudentsFromCourse(int courseId) {
         //YOUR CODE STARTS HERE
 
-
+        final String sql = "DELETE FROM course_student WHERE course_id = ?;";
+        jdbcTemplate.update(sql, courseId);
 
         //YOUR CODE ENDS HERE
     }
