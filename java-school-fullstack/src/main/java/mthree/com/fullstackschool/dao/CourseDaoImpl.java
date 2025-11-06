@@ -5,7 +5,10 @@ import mthree.com.fullstackschool.model.Course;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
@@ -22,9 +25,23 @@ public class CourseDaoImpl implements CourseDao {
     @Override
     public Course createNewCourse(Course course) {
         //YOUR CODE STARTS HERE
+        final String sql = "INSERT INTO course (courseCode, courseDesc, teacherId) VALUES (?, ?, ?);";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
+        jdbcTemplate.update((Connection conn) -> {
+            PreparedStatement statement = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setString(1, course.getCourseName());
+            statement.setString(2, course.getCourseDesc());
+            statement.setInt(3, course.getTeacherId());
+            return statement;
+        }, keyHolder);
 
-        return null;
+        Number key = keyHolder.getKey();
+        if (key != null) {
+            course.setCourseId(key.intValue());
+        }
+
+        return course;
 
         //YOUR CODE ENDS HERE
     }
@@ -41,10 +58,12 @@ public class CourseDaoImpl implements CourseDao {
     @Override
     public Course findCourseById(int id) {
         //YOUR CODE STARTS HERE
-        final String sql = "SELECT FROM course WHERE id = ?;";
+        final String sql = "SELECT * FROM course WHERE cid = ?;";
+
         try {
             return jdbcTemplate.queryForObject(sql, new CourseMapper(), id);
         } catch (DataAccessException e) {
+
             return null;
         }
         //YOUR CODE ENDS HERE
@@ -53,12 +72,12 @@ public class CourseDaoImpl implements CourseDao {
     @Override
     public void updateCourse(Course course) {
         //YOUR CODE STARTS HERE
-        final String sql = "UPDATE course SET cid = ?, courseCode = ?, courseDesc = ?, teacherId = ?;";
+        final String sql = "UPDATE course SET courseCode = ?, courseDesc = ?, teacherId = ? WHERE cid = ?;";
 
         jdbcTemplate.update(sql,
-                course.getCourseId(),
                 course.getCourseName(),
                 course.getCourseDesc(),
+                course.getTeacherId(),
                 course.getCourseId()
         );
         //YOUR CODE ENDS HERE
@@ -68,7 +87,7 @@ public class CourseDaoImpl implements CourseDao {
     public void deleteCourse(int id) {
         //YOUR CODE STARTS HERE
 
-        final String sql = "DELETE FROM course WHERE id = ?;";
+        final String sql = "DELETE FROM course WHERE cid = ?;";
         jdbcTemplate.update(sql, id);
 
         //YOUR CODE ENDS HERE

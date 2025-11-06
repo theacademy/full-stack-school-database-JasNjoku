@@ -11,8 +11,12 @@ import java.util.List;
 public class CourseServiceImpl implements CourseServiceInterface {
 
     //YOUR CODE STARTS HERE
+    private CourseDao courseDao;
 
-
+    @Autowired
+    public CourseServiceImpl(CourseDao dao) {
+        this.courseDao = dao;
+    }
 
     //YOUR CODE ENDS HERE
 

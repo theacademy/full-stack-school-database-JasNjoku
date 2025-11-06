@@ -5,6 +5,7 @@ import mthree.com.fullstackschool.model.Student;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +29,21 @@ public class StudentDaoImpl implements StudentDao {
     public Student createNewStudent(Student student) {
         //YOUR CODE STARTS HERE
 
+        final String sql = "INSERT INTO student (fName, lName) VALUES (?, ?);";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
 
-        return null;
+        jdbcTemplate.update((Connection conn) -> {
+            PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, student.getStudentFirstName());
+            ps.setString(2, student.getStudentLastName());
+            return ps;
+        }, keyHolder);
+
+        Number key = keyHolder.getKey();
+        if (key != null) {
+            student.setStudentId(key.intValue());
+        }
+        return student;
 
 
         //YOUR CODE ENDS HERE
@@ -40,7 +54,8 @@ public class StudentDaoImpl implements StudentDao {
         //YOUR CODE STARTS HERE
 
 
-        return null;
+        final String sql = "SELECT * FROM student;";
+        return jdbcTemplate.query(sql, new StudentMapper());
 
         //YOUR CODE ENDS HERE
     }
@@ -49,7 +64,12 @@ public class StudentDaoImpl implements StudentDao {
     public Student findStudentById(int id) {
         //YOUR CODE STARTS HERE
 
-        return null;
+        final String sql = "SELECT * FROM student WHERE sid = ?;";
+        try {
+            return jdbcTemplate.queryForObject(sql, new StudentMapper(), id);
+        } catch (Exception e) {
+            return null;
+        }
 
         //YOUR CODE ENDS HERE
     }
@@ -57,7 +77,11 @@ public class StudentDaoImpl implements StudentDao {
     @Override
     public void updateStudent(Student student) {
         //YOUR CODE STARTS HERE
-
+        final String sql = "UPDATE student SET fName = ?, lName = ? WHERE sid = ?;";
+        jdbcTemplate.update(sql,
+                student.getStudentFirstName(),
+                student.getStudentLastName(),
+                student.getStudentId());
 
         //YOUR CODE ENDS HERE
     }
@@ -66,7 +90,8 @@ public class StudentDaoImpl implements StudentDao {
     public void deleteStudent(int id) {
         //YOUR CODE STARTS HERE
 
-
+        final String sql = "DELETE FROM student WHERE sid = ?;";
+        jdbcTemplate.update(sql, id);
         //YOUR CODE ENDS HERE
     }
 
@@ -74,7 +99,8 @@ public class StudentDaoImpl implements StudentDao {
     public void addStudentToCourse(int studentId, int courseId) {
         //YOUR CODE STARTS HERE
 
-
+        final String sql = "DELETE FROM course_student WHERE student_id = ? AND course_id = ?;";
+        jdbcTemplate.update(sql, studentId, courseId);
 
         //YOUR CODE ENDS HERE
     }
