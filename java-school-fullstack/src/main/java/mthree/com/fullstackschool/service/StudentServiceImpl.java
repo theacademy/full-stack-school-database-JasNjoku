@@ -13,9 +13,12 @@ public class StudentServiceImpl implements StudentServiceInterface {
 
     //YOUR CODE STARTS HERE
     private StudentDao studentDao;
+    private CourseServiceInterface courseService;
 
-    public StudentServiceImpl(StudentDao dao) {
+    @Autowired
+    public StudentServiceImpl(StudentDao dao, CourseServiceInterface courseService) {
         this.studentDao = dao;
+        this.courseService = courseService;
     }
 
     //YOUR CODE ENDS HERE
@@ -23,7 +26,7 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public List<Student> getAllStudents() {
         //YOUR CODE STARTS HERE
 
-        return null;
+        return studentDao.getAllStudents();
 
         //YOUR CODE ENDS HERE
     }
@@ -31,7 +34,14 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public Student getStudentById(int id) {
         //YOUR CODE STARTS HERE
 
-        return null;
+        try {
+            return studentDao.findStudentById(id);
+        } catch (DataAccessException e) {
+            Student notFound = new Student();
+            notFound.setStudentFirstName("Student Not Found");
+            notFound.setStudentLastName("Student Not Found");
+            return notFound;
+        }
 
         //YOUR CODE ENDS HERE
     }
@@ -39,7 +49,16 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public Student addNewStudent(Student student) {
         //YOUR CODE STARTS HERE
 
-        return null;
+        //YOUR CODE STARTS HERE
+        if (student.getStudentFirstName() == null || student.getStudentFirstName().isBlank() ||
+                student.getStudentLastName() == null || student.getStudentLastName().isBlank()) {
+            student.setStudentFirstName("First Name blank, student NOT added");
+            student.setStudentLastName("Last Name blank, student NOT added");
+            return student;
+        }
+
+        studentDao.createNewStudent(student);
+        return student;
 
         //YOUR CODE ENDS HERE
     }
@@ -47,7 +66,14 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public Student updateStudentData(int id, Student student) {
         //YOUR CODE STARTS HERE
 
-        return null;
+        if (id != student.getStudentId()) {
+            student.setStudentFirstName("IDs do not match, student not updated");
+            student.setStudentLastName("IDs do not match, student not updated");
+            return student;
+        }
+
+        studentDao.updateStudent(student);
+        return student;
 
         //YOUR CODE ENDS HERE
     }
@@ -55,7 +81,7 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public void deleteStudentById(int id) {
         //YOUR CODE STARTS HERE
 
-
+        studentDao.deleteStudent(id);
 
         //YOUR CODE ENDS HERE
     }
@@ -63,7 +89,17 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public void deleteStudentFromCourse(int studentId, int courseId) {
         //YOUR CODE STARTS HERE
 
+        Student student = this.getStudentById(studentId);
+        Course course = courseService.getCourseById(courseId);
 
+        if ("Student Not Found".equals(student.getStudentFirstName())) {
+            System.out.println("Student not found");
+        } else if ("Course Not Found".equals(course.getCourseName())) {
+            System.out.println("Course not found");
+        } else {
+            studentDao.deleteStudentFromCourse(studentId, courseId);
+            System.out.println("Student: " + studentId + " deleted from course: " + courseId);
+        }
 
         //YOUR CODE ENDS HERE
     }
@@ -71,6 +107,21 @@ public class StudentServiceImpl implements StudentServiceInterface {
     public void addStudentToCourse(int studentId, int courseId) {
         //YOUR CODE STARTS HERE
 
+        Student student = this.getStudentById(studentId);
+        Course course = courseService.getCourseById(courseId);
+
+        if ("Student Not Found".equals(student.getStudentFirstName())) {
+            System.out.println("Student not found");
+        } else if ("Course Not Found".equals(course.getCourseName())) {
+            System.out.println("Course not found");
+        } else {
+            try {
+                studentDao.addStudentToCourse(studentId, courseId);
+                System.out.println("Student: " + studentId + " added to course: " + courseId);
+            } catch (Exception e) {
+                System.out.println("Student: " + studentId + " already enrolled in course: " + courseId);
+            }
+        }
 
         //YOUR CODE ENDS HERE
     }
